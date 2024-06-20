@@ -66,9 +66,18 @@ class LoginController extends AbstractController
         if ($session) {
             $currentDate = new \DateTime();
             if ($session->getExpirationDate() > $currentDate) {
-                // Optionally, you can also return the user details
+                // Fetch user details without circular reference issues
                 $user = $session->getUser();
-                return $this->json(['message' => 'Authenticated', 'user' => $user]);
+                
+                // Optionally, serialize the user object with Symfony's Serializer
+                $userData = [
+                    'id' => $user->getId(),
+                    'username' => $user->getUsername(),
+                    'email' => $user->getEmail()
+                    // Add any other user fields you need to return
+                ];
+                
+                return $this->json(['message' => 'Authenticated', 'user' => $userData]);
             } else {
                 return $this->json(['error' => 'Session expired'], 401);
             }
