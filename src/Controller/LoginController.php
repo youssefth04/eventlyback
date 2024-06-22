@@ -23,30 +23,43 @@ class LoginController extends AbstractController
         $this->passwordHasher = $passwordHasher;
     }
 
+    #[Route('/login', name: 'login', methods: ['POST'])]
     public function signIn(Request $request): JsonResponse
     {
+        // Decode JSON data from request body
         $requestData = json_decode($request->getContent(), true);
         $username = $requestData['username'];
         $password = $requestData['password'];
-
+    
+        // Find user by username in the database
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['username' => $username]);
-
+    
+        // Check if user exists and password is valid
         if ($user && $this->passwordHasher->isPasswordValid($user, $password)) {
+            // Generate a random session token
             $sessionToken = bin2hex(random_bytes(32));
             $expirationDate = new \DateTime();
-            $expirationDate->modify("+360 minutes");
-
+            $expirationDate->modify("+360 minutes"); // Set expiration date
+    
+            // Create a new session entity and associate it with the user
             $session = new Session();
             $session->setUser($user);
             $session->setSessionToken($sessionToken);
             $session->setExpirationDate($expirationDate);
-
+    
+            // Persist the session entity to the database
             $this->entityManager->persist($session);
             $this->entityManager->flush();
-
-            return $this->json(['message' => 'Login successful', 'sessionToken' => $sessionToken]);
+    
+            // Return a JSON response with the session token and user role
+            return $this->json([
+                'message' => 'Login successful',
+                'sessionToken' => $sessionToken,
+                'role' => $user->getRole(), // Assuming User entity has a getRole() method
+            ]);
         }
-
+    
+        // Return an error response if authentication fails
         return $this->json(['error' => 'Invalid username or password'], 401);
     }
 
@@ -73,7 +86,9 @@ class LoginController extends AbstractController
                 $userData = [
                     'id' => $user->getId(),
                     'username' => $user->getUsername(),
-                    'email' => $user->getEmail()
+                    'email' => $user->getEmail(),
+                    'role' => $user->getRole()
+                    
                     // Add any other user fields you need to return
                 ];
                 
