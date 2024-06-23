@@ -24,8 +24,6 @@ class Session
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    // Getters and setters...
-
     public function getId(): ?int
     {
         return $this->id;
@@ -39,7 +37,6 @@ class Session
     public function setSessionToken(string $sessionToken): static
     {
         $this->sessionToken = $sessionToken;
-
         return $this;
     }
 
@@ -51,7 +48,6 @@ class Session
     public function setExpirationDate(\DateTimeInterface $expirationDate): static
     {
         $this->expirationDate = $expirationDate;
-
         return $this;
     }
 
@@ -63,7 +59,6 @@ class Session
     public function setUser(?User $user): static
     {
         $this->user = $user;
-
         return $this;
     }
 }

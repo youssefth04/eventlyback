@@ -31,17 +31,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 20)]
-    private ?string $role = 'ROLE_USER'; // Default role
+    private ?string $role = 'ROLE_USER';
 
-    /**
-     * @var Collection<int, Session>
-     */
     #[ORM\OneToMany(targetEntity: Session::class, mappedBy: 'user')]
     private Collection $sessions;
+
+    #[ORM\OneToMany(targetEntity: Organizer::class, mappedBy: 'user')]
+    private Collection $organizers;
 
     public function __construct()
     {
         $this->sessions = new ArrayCollection();
+        $this->organizers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -93,9 +94,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, Session>
-     */
     public function getSessions(): Collection
     {
         return $this->sessions;
@@ -114,7 +112,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeSession(Session $session): static
     {
         if ($this->sessions->removeElement($session)) {
-            // set the owning side to null (unless already changed)
             if ($session->getUser() === $this) {
                 $session->setUser(null);
             }
@@ -123,7 +120,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // UserInterface methods
     public function getRoles(): array
     {
         return [$this->role];
@@ -131,13 +127,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        // Clear any temporary sensitive data
     }
 
-    // PasswordAuthenticatedUserInterface method
     public function getUserIdentifier(): string
     {
         return $this->email;
+    }
+
+    public function getOrganizers(): Collection
+    {
+        return $this->organizers;
+    }
+
+    public function addOrganizer(Organizer $organizer): static
+    {
+        if (!$this->organizers->contains($organizer)) {
+            $this->organizers->add($organizer);
+            $organizer->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrganizer(Organizer $organizer): static
+    {
+        if ($this->organizers->removeElement($organizer)) {
+            if ($organizer->getUser() === $this) {
+                $organizer->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }

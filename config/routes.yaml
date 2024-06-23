@@ -16,3 +16,7 @@ login:
     path: /login
     controller: App\Controller\LoginController::signIn
     methods: [POST]
+organizer_register:
+  path: /event
+  controller: App\Controller\OrganizerController::register
+  methods: [POST]
